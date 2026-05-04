@@ -1,4 +1,4 @@
-import { type ReactNode, useMemo, useEffect, useState } from "react";
+import { type ReactNode, useMemo, useEffect, useState, useCallback } from "react";
 import { Navigate, useParams, useSearchParams } from "react-router";
 import { io, Socket } from "socket.io-client";
 
@@ -93,6 +93,7 @@ function SessionProvider({ children }: { children: ReactNode }) {
       })
       .on("ready", (newPid: number) => {
         console.log("socket.io ready");
+        setCrashDetail(null);
         setStatus(Status.Ready);
         setPid(newPid);
       })
@@ -107,7 +108,10 @@ function SessionProvider({ children }: { children: ReactNode }) {
         setStatus(Status.Connecting);
       })
       .on("fatal", (detail) => {
+        console.error("session fatal:", detail);
         setCrashDetail(detail as CrashDetail);
+        // Don't set status to Disconnected — stay in Connecting so the
+        // user can retry without the socket being torn down
       })
       .on("disconnect", () => {
         console.debug("socket.io disconnect");
@@ -131,6 +135,13 @@ function SessionProvider({ children }: { children: ReactNode }) {
       }
     };
   }, [device, platform, mode, bundle, targetPid, processName, socket, status]);
+
+  const handleRetry = useCallback(() => {
+    if (!socket) return;
+    setCrashDetail(null);
+    setStatus(Status.Connecting);
+    socket.emit("retry");
+  }, [socket]);
 
   const contextValue = useMemo(
     () => ({
@@ -168,7 +179,11 @@ function SessionProvider({ children }: { children: ReactNode }) {
     <SessionContext.Provider value={contextValue}>
       {children}
       <DeniedDialog open={denied} />
-      <CrashDialog detail={crashDetail} showRelaunch={mode === Mode.App} />
+      <CrashDialog
+        detail={crashDetail}
+        showRelaunch={mode === Mode.App}
+        onRetry={handleRetry}
+      />
     </SessionContext.Provider>
   );
 }

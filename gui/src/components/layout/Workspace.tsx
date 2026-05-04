@@ -19,6 +19,7 @@ import {
 
 import { LeftPanelView } from "./LeftPanelView";
 import { BottomPanelView } from "./BottomPanelView";
+import { AgentChatPanel } from "./AgentChatPanel";
 import { CommandPalette } from "./CommandPalette";
 import { useSession } from "@/context/SessionContext";
 import SessionProvider from "../providers/SessionProvider";
@@ -323,25 +324,25 @@ function WorkspaceContent() {
       <div className="flex h-screen flex-col">
         <ResizablePanelGroup
           orientation="horizontal"
-          className="h-full"
-          autoSaveId="workspace-left-split"
+          className="min-h-0 flex-1"
+          autoSaveId="workspace-shell-split-v2"
         >
           <ResizablePanel
             id="left"
-            defaultSize="20%"
+            defaultSize="18%"
             minSize="15%"
-            className="flex flex-col"
+            className="min-w-0 overflow-hidden"
           >
             <LeftPanelView />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel id="main">
+          <ResizablePanel id="main" className="min-w-0 overflow-hidden">
             <ResizablePanelGroup
               orientation="vertical"
               className="h-full"
               autoSaveId="workspace-bottom-split"
             >
-              <ResizablePanel id="dock">
+              <ResizablePanel id="dock" className="min-w-0 overflow-hidden">
                 <DockviewReact
                   theme={themeApp}
                   onReady={onReady}
@@ -357,6 +358,7 @@ function WorkspaceContent() {
                 minSize="10%"
                 collapsible
                 collapsedSize={0}
+                className="min-w-0 overflow-hidden"
                 onResize={(size) => {
                   if (!mountedRef.current) return;
                   setBottomPanelVisible(size.asPercentage > 0);
@@ -365,6 +367,16 @@ function WorkspaceContent() {
                 <BottomPanelView />
               </ResizablePanel>
             </ResizablePanelGroup>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            id="agent-chat"
+            defaultSize="24%"
+            minSize="18%"
+            maxSize="36%"
+            className="min-w-0 overflow-hidden"
+          >
+            <AgentChatPanel />
           </ResizablePanel>
         </ResizablePanelGroup>
         <StatusBar

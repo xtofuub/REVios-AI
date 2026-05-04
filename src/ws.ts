@@ -22,10 +22,31 @@ export default function attach(server: ServerType) {
   io.of("/session").on("connection", (socket) => {
     const params = parse(socket.handshake.query);
     if (params) {
-      connect(socket, params).catch((ex) => {
-        console.error("failed to establish session, ", ex);
-        socket.disconnect(true);
+      const tryConnect = () => {
+        connect(socket, params).catch((ex) => {
+          console.error("failed to establish session, ", ex);
+          socket.emit("fatal", {
+            type: "SessionError",
+            address: "n/a",
+            message: ex instanceof Error ? ex.message : String(ex),
+            context: {
+              device: params.deviceId,
+              platform: params.platform,
+              mode: params.mode,
+              bundle: params.bundle ?? null,
+              pid: params.pid ?? null,
+            },
+          });
+          // Don't disconnect — let the client retry or navigate away
+        });
+      };
+
+      socket.on("retry", () => {
+        console.info("client requested session retry");
+        tryConnect();
       });
+
+      tryConnect();
     } else {
       console.error("invalid params:", socket.handshake.query);
       // there is a weird bug that first time calling socket.io

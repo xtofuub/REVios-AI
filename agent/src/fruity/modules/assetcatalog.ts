@@ -1,5 +1,6 @@
 import ObjC from "frida-objc-bridge";
 import { NSArray, NSData } from "../typings.js";
+import { performOnMainThread } from "../lib/dispatch.js";
 import coregraphics from "../native/coregraphics.js";
 import uikit from "../native/uikit.js";
 
@@ -30,22 +31,27 @@ export interface AssetRawResult {
   data: string; // base64
 }
 
-function openCatalog(path: string): ObjC.Object {
-  const { CUICatalog, NSBundle } = ObjC.classes;
+function loadFramework(path: string, name: string) {
+  if (Process.findModuleByName(name)) return;
+  const bundle = ObjC.classes.NSBundle.bundleWithPath_(path);
+  if (!bundle) return;
+  const errorPtr = Memory.alloc(Process.pointerSize).writePointer(NULL);
+  bundle.loadAndReturnError_(errorPtr);
+}
+
+function coreUICatalogClass(): ObjC.Object {
+  loadFramework("/System/Library/PrivateFrameworks/CoreUI.framework", "CoreUI");
+  const { CUICatalog } = ObjC.classes;
   if (!CUICatalog) {
     throw new Error(
       "CUICatalog class not available. CoreUI framework not loaded.",
     );
   }
+  return CUICatalog;
+}
 
-  if (path === "default") {
-    const catalog = CUICatalog.defaultUICatalogForBundle_(
-      NSBundle.mainBundle(),
-    );
-    if (!catalog) throw new Error("No default UI catalog");
-    return catalog;
-  }
-
+function openCatalogAtPath(path: string): ObjC.Object {
+  const CUICatalog = coreUICatalogClass();
   const nsurl = ObjC.classes.NSURL.fileURLWithPath_(path);
   const errorPtr = Memory.alloc(Process.pointerSize).writePointer(NULL);
   const catalog = CUICatalog.alloc().initWithURL_error_(nsurl, errorPtr);
@@ -58,6 +64,25 @@ function openCatalog(path: string): ObjC.Object {
     throw new Error("Failed to open asset catalog");
   }
   return catalog;
+}
+
+function openCatalog(path: string): ObjC.Object {
+  const CUICatalog = coreUICatalogClass();
+  const { NSBundle } = ObjC.classes;
+  if (path === "default") {
+    const mainBundle = NSBundle.mainBundle();
+    const catalog = CUICatalog.defaultUICatalogForBundle_(
+      mainBundle,
+    );
+    if (catalog) return catalog;
+
+    const assetPath = mainBundle.pathForResource_ofType_("Assets", "car");
+    if (assetPath) return openCatalogAtPath(assetPath.toString() as string);
+
+    throw new Error("No default UI catalog");
+  }
+
+  return openCatalogAtPath(path);
 }
 
 function cgImageSize(cgImage: NativePointer): {
@@ -81,7 +106,7 @@ function getImages(catalog: ObjC.Object, name: string): ObjC.Object[] {
   return result;
 }
 
-export function open(path: string): AssetCatalogInfo {
+function openSync(path: string): AssetCatalogInfo {
   const catalog = openCatalog(path);
   const nsNames = catalog.allImageNames();
   const count = nsNames.count() as number;
@@ -94,7 +119,7 @@ export function open(path: string): AssetCatalogInfo {
   return { path, names };
 }
 
-export function variants(path: string, name: string): AssetVariant[] {
+function variantsSync(path: string, name: string): AssetVariant[] {
   const catalog = openCatalog(path);
   const images = getImages(catalog, name);
   const { CUINamedData } = ObjC.classes;
@@ -133,7 +158,7 @@ export function variants(path: string, name: string): AssetVariant[] {
   });
 }
 
-export function image(
+function imageSync(
   path: string,
   name: string,
   index: number,
@@ -193,7 +218,7 @@ function extFromUTI(uti: string | null): string {
   return UTI_EXT[uti] ?? "png";
 }
 
-export function rawImage(
+function rawImageSync(
   path: string,
   name: string,
   index: number,
@@ -252,4 +277,28 @@ export function rawImage(
     filename: `${name}${suffix}.png`,
     data: pngData.base64EncodedStringWithOptions_(0).toString(),
   };
+}
+
+export function open(path: string): Promise<AssetCatalogInfo> {
+  return performOnMainThread(() => openSync(path));
+}
+
+export function variants(path: string, name: string): Promise<AssetVariant[]> {
+  return performOnMainThread(() => variantsSync(path, name));
+}
+
+export function image(
+  path: string,
+  name: string,
+  index: number,
+): Promise<AssetImageResult | null> {
+  return performOnMainThread(() => imageSync(path, name, index));
+}
+
+export function rawImage(
+  path: string,
+  name: string,
+  index: number,
+): Promise<AssetRawResult | null> {
+  return performOnMainThread(() => rawImageSync(path, name, index));
 }

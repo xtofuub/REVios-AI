@@ -87,40 +87,95 @@ export interface DirectoryListing {
 // pentest purpose. Consider adding it back in the future.
 
 export function ls(path: string): DirectoryListing {
-  const names = readdirSync(path);
+  let names: string[];
+  let useNSFileManager = false;
+
+  try {
+    names = readdirSync(path);
+  } catch {
+    useNSFileManager = true;
+    names = [];
+  }
+
   const writable = file.isWritable(path);
   const list: MetaData[] = [];
 
-  for (const name of names) {
-    if (name.startsWith(".")) continue;
+  if (useNSFileManager) {
+    const fm = shared();
+    const pError = Memory.alloc(Process.pointerSize).writePointer(NULL);
+    const nsArray = fm.contentsOfDirectoryAtPath_error_(path, pError);
 
-    const fullPath = path + "/" + name;
-    let size: number | null = null;
-    let created = new Date(0);
-    let protection: string | null = null;
-    let isDir = false;
-    let isSymlink = false;
-
-    try {
-      const stat = lstatSync(fullPath);
-      isDir = stat.isDirectory();
-      isSymlink = stat.isSymbolicLink();
-      size = isDir ? null : stat.size.valueOf();
-      created = stat.birthtime;
-      protection = "0" + (stat.mode & 0o7777).toString(8);
-    } catch {
-      continue;
+    if (!nsArray) {
+      const err = pError.readPointer();
+      if (!err.isNull()) {
+        throw new Error(new ObjC.Object(err).localizedDescription());
+      }
+      return { cwd: path, writable, list: [] };
     }
 
-    list.push({
-      name,
-      dir: isDir,
-      protection,
-      size,
-      alias: false,
-      created,
-      symlink: isSymlink,
-    });
+    const count = nsArray.count() as number;
+    for (let i = 0; i < count; i++) {
+      const name = nsArray.objectAtIndex_(i).toString();
+      if (name.startsWith(".")) continue;
+
+      const fullPath = path + "/" + name;
+      let size: number | null = null;
+      let created = new Date(0);
+      let protection: string | null = null;
+      let isDir = false;
+
+      try {
+        const stat = lstatSync(fullPath);
+        isDir = stat.isDirectory();
+        size = isDir ? null : stat.size.valueOf();
+        created = stat.birthtime;
+        protection = "0" + (stat.mode & 0o7777).toString(8);
+      } catch {
+        continue;
+      }
+
+      list.push({
+        name,
+        dir: isDir,
+        protection,
+        size,
+        alias: false,
+        created,
+        symlink: false,
+      });
+    }
+  } else {
+    for (const name of names) {
+      if (name.startsWith(".")) continue;
+
+      const fullPath = path + "/" + name;
+      let size: number | null = null;
+      let created = new Date(0);
+      let protection: string | null = null;
+      let isDir = false;
+      let isSymlink = false;
+
+      try {
+        const stat = lstatSync(fullPath);
+        isDir = stat.isDirectory();
+        isSymlink = stat.isSymbolicLink();
+        size = isDir ? null : stat.size.valueOf();
+        created = stat.birthtime;
+        protection = "0" + (stat.mode & 0o7777).toString(8);
+      } catch {
+        continue;
+      }
+
+      list.push({
+        name,
+        dir: isDir,
+        protection,
+        size,
+        alias: false,
+        created,
+        symlink: isSymlink,
+      });
+    }
   }
 
   return { cwd: path, writable, list };

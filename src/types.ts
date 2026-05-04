@@ -71,6 +71,7 @@ export interface ClientToServerEvents {
   rpc: (mod: string, method: string, args: any[], ack: ClientCallback) => void;
   eval: (source: string, name: string, ack: ClientCallback) => void;
   clearLog: (type: "syslog" | "agent", ack: ClientCallback) => void;
+  retry: () => void;
 }
 
 export interface SessionStores {

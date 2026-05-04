@@ -27,34 +27,52 @@ const manager = frida.getDeviceManager();
 
 export { manager };
 
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function resolveAppPid(
   device: Device,
   bundleId: string,
   platform: Platform,
 ): Promise<number> {
-  const match = await device.enumerateApplications({
-    identifiers: [bundleId],
-    scope: frida.Scope.Full,
-  });
+  const maxRetries = 3;
+  let lastError: unknown;
 
-  const app = match.at(0);
-  if (!app) throw new Error(`Application ${bundleId} not found on device`);
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const match = await device.enumerateApplications({
+        identifiers: [bundleId],
+        scope: frida.Scope.Full,
+      });
 
-  const frontmost = await device.getFrontmostApplication();
-  if (frontmost?.pid === app.pid) return app.pid;
+      const app = match.at(0);
+      if (!app) throw new Error(`Application ${bundleId} not found on device`);
 
-  const devParams = await device.querySystemParameters();
-  const opt: SpawnOptions = {};
+      const frontmost = await device.getFrontmostApplication();
+      if (frontmost?.pid === app.pid) return app.pid;
 
-  if (platform === "fruity") {
-    if (devParams.access === "full" && devParams.os.id === "ios") {
-      opt.env = {
-        DISABLE_TWEAKS: "1", // workaround for ellekit crash
-      };
+      const devParams = await device.querySystemParameters();
+      const opt: SpawnOptions = {};
+
+      if (platform === "fruity") {
+        if (devParams.access === "full" && devParams.os.id === "ios") {
+          opt.env = {
+            DISABLE_TWEAKS: "1", // workaround for ellekit crash
+          };
+        }
+      }
+
+      return await device.spawn(bundleId, opt);
+    } catch (err) {
+      lastError = err;
+      console.warn(
+        `resolveAppPid attempt ${attempt}/${maxRetries} failed:`,
+        err instanceof Error ? err.message : err,
+      );
+      if (attempt < maxRetries) await delay(2000);
     }
   }
 
-  return device.spawn(bundleId, opt);
+  throw lastError;
 }
 
 function rpcErrorMessage(ns: string, method: string, err: unknown): string {

@@ -34,9 +34,11 @@ function getGeneralRegisters(
 export function CrashDialog({
   detail,
   showRelaunch,
+  onRetry,
 }: {
   detail: CrashDetail | null;
   showRelaunch: boolean;
+  onRetry?: () => void;
 }) {
   const navigate = useNavigate();
 
@@ -135,6 +137,11 @@ export function CrashDialog({
           </ScrollArea>
         )}
         <AlertDialogFooter>
+          {onRetry && (
+            <AlertDialogAction onClick={onRetry}>
+              Retry
+            </AlertDialogAction>
+          )}
           {showRelaunch && (
             <AlertDialogAction onClick={() => location.reload()}>
               Relaunch

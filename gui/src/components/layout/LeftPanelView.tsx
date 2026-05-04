@@ -83,8 +83,8 @@ export function LeftPanelView() {
   });
 
   return (
-    <div className="flex h-full">
-      <div className="w-16 bg-sidebar border-r border-sidebar-border flex flex-col">
+    <div className="flex h-full min-w-0 overflow-hidden">
+      <div className="w-16 shrink-0 bg-sidebar border-r border-sidebar-border flex flex-col">
         <div className="p-2 flex items-center justify-center border-b border-sidebar-border">
           <Link to={`/list/${device}/apps`} className="flex items-center">
             <img src={logo} alt={t("logo_alt")} className="h-6 w-6" />
@@ -122,7 +122,7 @@ export function LeftPanelView() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto">
+      <div className="min-w-0 flex-1 overflow-auto">
         <Outlet />
       </div>
     </div>

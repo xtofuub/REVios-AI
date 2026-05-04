@@ -61,7 +61,7 @@ export default {
   host,
   port: envAsNumber(dev ? "BACKEND_PORT" : "PORT", port),
   frontend: envAsNumber("WEB_PORT", frontend),
-  timeout: envAsNumber("FRIDA_TIMEOUT", 1000),
+  timeout: envAsNumber("FRIDA_TIMEOUT", 10000),
   noOpen,
   workdir,
 };

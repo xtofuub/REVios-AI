@@ -245,6 +245,7 @@ export interface SessionServerEvents {
     type: "syslog" | "agent",
     ack: (err: string | null, result: unknown) => void,
   ) => void;
+  retry: () => void;
 }
 
 export type AsyncFruityRPC = RemoteRPC<FruityRPCRoute>;
