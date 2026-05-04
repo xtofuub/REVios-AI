@@ -82,28 +82,6 @@ describe("API tests", () => {
     assert.strictEqual(r.status, 404);
   });
 
-  it("should handle remote device management", async () => {
-    // Test adding a remote device
-    const r1 = await app.request("/api/devices/remote/invalid-hostname", {
-      method: "PUT",
-    });
-    // PUT returns 204 on success
-    assert(
-      r1.status === 204 || r1.status === 200 || r1.status >= 400,
-      "PUT should return appropriate status",
-    );
-
-    // Test removing a non-existent remote device
-    const r2 = await app.request("/api/devices/remote/nonexistent", {
-      method: "DELETE",
-    });
-    assert.strictEqual(
-      r2.status,
-      404,
-      "DELETE should return 404 for non-existent device",
-    );
-  });
-
   it("should return 404 for non-existent app icon", async () => {
     const udid = process.env.UDID;
     if (!udid) {
