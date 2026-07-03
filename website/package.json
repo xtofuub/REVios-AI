@@ -24,7 +24,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "oxlint": "^0.16",
+    "oxlint": "^1.72",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
