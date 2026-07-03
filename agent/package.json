@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/frida-gum": "^19.0.2",
-    "@types/node": "^18.19.130",
+    "@types/node": "^26.1.0",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
     "@typescript/native-preview": "7.0.0-dev.20251108.1",
