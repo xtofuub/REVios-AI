@@ -28,13 +28,13 @@ jobs:
           registry-url: "https://registry.npmjs.org"
 
       - name: Download CLI binaries
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: cli-binaries
           path: cli
 
       - name: Download npm tarball
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: igf.tgz
           path: npm
