@@ -27,7 +27,7 @@
     "@types/node": "^18.19.130",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@typescript-eslint/parser": "^8.57.0",
-    "@typescript/native-preview": "7.0.0-dev.20251108.1",
+    "@typescript/native-preview": "7.0.0-dev.20260702.3",
     "eslint": "^9.39.4",
     "frida-compile": "^19.0.5"
   },
