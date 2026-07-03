@@ -23,18 +23,18 @@
     "type": "bun run type:emit && bun run type:monaco"
   },
   "devDependencies": {
-    "@types/frida-gum": "^19.0.2",
+    "@types/frida-gum": "^19.7.0",
     "@types/node": "^18.19.130",
-    "@typescript-eslint/eslint-plugin": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
     "@typescript-eslint/parser": "^8.57.0",
     "@typescript/native-preview": "7.0.0-dev.20251108.1",
     "eslint": "^9.39.4",
     "frida-compile": "^19.0.5"
   },
   "dependencies": {
-    "frida-il2cpp-bridge": "^0.13.0",
+    "frida-il2cpp-bridge": "^0.13.1",
     "frida-java-bridge": "^7.0.12",
-    "frida-objc-bridge": "^8.0.5",
+    "frida-objc-bridge": "^8.0.6",
     "frida-remote-stream": "^6.0.3",
     "frida-swift-bridge": "^3.0.2"
   },
