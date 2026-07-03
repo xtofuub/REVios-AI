@@ -5,8 +5,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-      time: "09:00"
-      timezone: "Europe/Helsinki"
     open-pull-requests-limit: 1
     groups:
       npm-patch:
@@ -23,8 +21,6 @@ updates:
     directory: "/agent"
     schedule:
       interval: "monthly"
-      time: "09:00"
-      timezone: "Europe/Helsinki"
     open-pull-requests-limit: 1
     groups:
       npm-patch:
@@ -41,8 +37,6 @@ updates:
     directory: "/gui"
     schedule:
       interval: "monthly"
-      time: "09:00"
-      timezone: "Europe/Helsinki"
     open-pull-requests-limit: 1
     groups:
       npm-patch:
@@ -59,8 +53,6 @@ updates:
     directory: "/website"
     schedule:
       interval: "monthly"
-      time: "09:00"
-      timezone: "Europe/Helsinki"
     open-pull-requests-limit: 1
     groups:
       npm-patch:
@@ -77,8 +69,6 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
-      time: "09:00"
-      timezone: "Europe/Helsinki"
     open-pull-requests-limit: 1
     groups:
       actions-patch:
